@@ -43,14 +43,14 @@ public class BallController : MonoBehaviour
         // 2. Provjera golova (ako loptica ode iza reketa)
         if (racketLeft != null && racketRight != null)
         {
-            if (transform.position.x < racketLeft.position.x - 2f)
+            if (transform.position.x < racketLeft.position.x - 1f)
             {
                 scoreRight++;
                 Debug.Log("Gol za desnog igraèa! Rezultat: " + scoreLeft + " : " + scoreRight);
                 ResetBall();
             }
 
-            if (transform.position.x > racketRight.position.x + 2f)
+            if (transform.position.x > racketRight.position.x + 1f)
             {
                 scoreLeft++;
                 Debug.Log("Gol za lijevog igraèa! Rezultat: " + scoreLeft + " : " + scoreRight);
