@@ -2,66 +2,91 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public float speed = 30f;
+    // Poèetna brzina loptice i stopa kojom se ubrzava
+    public float baseSpeed = 60f;
+    public float speedIncreaseRate = 1f; // Koliko se brzina poveæava svake sekunde
+    private float currentSpeed;
 
     // Varijable za bodove igraèa
     public static int scoreLeft = 0;
     public static int scoreRight = 0;
 
+    private Transform racketLeft;
+    private Transform racketRight;
+    private Rigidbody2D rb;
+
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
+
+        // Pronaði rekete u sceni
+        GameObject rLeft = GameObject.Find("RacketLeft");
+        GameObject rRight = GameObject.Find("RacketRight");
+
+        if (rLeft != null) racketLeft = rLeft.transform;
+        if (rRight != null) racketRight = rRight.transform;
+
         ResetBall();
     }
 
     void Update()
     {
-        // Ako loptica ode iza desnog reketa (X > 90), gol za lijevog igraèa
-        if (transform.position.x > 84.6f)
+        // 1. Postepeno poveæavaj brzinu loptice s vremenom
+        currentSpeed += speedIncreaseRate * Time.deltaTime;
+
+        // Održavaj smjer loptice, ali primjenjuj novu, veæu brzinu
+        if (rb.linearVelocity != Vector2.zero)
         {
-            scoreLeft++;
-            Debug.Log("Gol za lijevog! Rezultat: " + scoreLeft + " : " + scoreRight);
-            ResetBall();
+            rb.linearVelocity = rb.linearVelocity.normalized * currentSpeed;
         }
 
-        // Ako loptica ode iza lijevog reketa (X < -90), gol za desnog igraèa
-        if (transform.position.x < -84.6f)
+        // 2. Provjera golova (ako loptica ode iza reketa)
+        if (racketLeft != null && racketRight != null)
         {
-            scoreRight++;
-            Debug.Log("Gol za desnog! Rezultat: " + scoreLeft + " : " + scoreRight);
-            ResetBall();
+            if (transform.position.x < racketLeft.position.x - 2f)
+            {
+                scoreRight++;
+                Debug.Log("Gol za desnog igraèa! Rezultat: " + scoreLeft + " : " + scoreRight);
+                ResetBall();
+            }
+
+            if (transform.position.x > racketRight.position.x + 2f)
+            {
+                scoreLeft++;
+                Debug.Log("Gol za lijevog igraèa! Rezultat: " + scoreLeft + " : " + scoreRight);
+                ResetBall();
+            }
         }
     }
 
     void ResetBall()
     {
-        // 1. Vrati lopticu u centar ekrana (0, 0)
+        // Vrati lopticu u centar
         transform.position = Vector2.zero;
-
-        // 2. Zaustavi trenutnu brzinu
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
         rb.linearVelocity = Vector2.zero;
 
-        // 3. Pošalji lopticu nasumièno lijevo ili desno
+        // Resetiraj brzinu na poèetnu vrijednost za novu rundu
+        currentSpeed = baseSpeed;
+
+        // Pošalji lopticu nasumièno lijevo ili desno
         float randomDirection = Random.Range(0, 2) == 0 ? 1f : -1f;
-        rb.linearVelocity = new Vector2(randomDirection, 0) * speed;
+        rb.linearVelocity = new Vector2(randomDirection, 0) * currentSpeed;
     }
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        // Provjera udarca u lijevi reket
         if (col.gameObject.name == "RacketLeft")
         {
             float y = HitFactor(transform.position, col.transform.position, col.collider.bounds.size.y);
             Vector2 direction = new Vector2(1, y).normalized;
-            GetComponent<Rigidbody2D>().linearVelocity = direction * speed;
+            rb.linearVelocity = direction * currentSpeed;
         }
 
-        // Provjera udarca u desni reket
         if (col.gameObject.name == "RacketRight")
         {
             float y = HitFactor(transform.position, col.transform.position, col.collider.bounds.size.y);
             Vector2 direction = new Vector2(-1, y).normalized;
-            GetComponent<Rigidbody2D>().linearVelocity = direction * speed;
+            rb.linearVelocity = direction * currentSpeed;
         }
     }
 
