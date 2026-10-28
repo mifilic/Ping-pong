@@ -8,8 +8,8 @@ public class BallController : MonoBehaviour
     private float currentSpeed;
 
     // Varijable za bodove igraèa
-    public static int scoreLeft = 0;
-    public static int scoreRight = 0;
+    public int scoreLeft = 0;
+    public int scoreRight = 0;
 
     private Transform racketLeft;
     private Transform racketRight;
@@ -17,6 +17,8 @@ public class BallController : MonoBehaviour
 
     void Start()
     {
+        scoreLeft = 0;
+        scoreRight = 0;
         rb = GetComponent<Rigidbody2D>();
 
         // Pronaði rekete u sceni
